@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Para Transferi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="bg-light shadow-sm mb-4">
+    <div class="container d-flex justify-content-between align-items-center py-2">
+        <div class="nav nav-pills">
+            <a class="nav-link" href="/customer/list">Müşteriler</a>
+            <a class="nav-link" href="/account/list">Hesaplar</a>
+            <a class="nav-link" href="/depositor/list">Mevduat Sahipleri</a>
+            <a sec:authorize="hasRole('USER')" class="nav-link active" href="/transfer">Transfer</a>
+        </div>
+
+        <div sec:authorize="isAuthenticated()">
+            <div class="bg-white border rounded-pill px-3 py-1 d-flex align-items-center">
+                <span class="fw-bold me-2" sec:authentication="name">Kullanıcı İsmi</span>
+                <span class="badge rounded-pill bg-primary me-2" style="font-size: 0.7rem;" sec:authorize="hasRole('ADMIN')">ADMIN</span>
+                <span class="badge rounded-pill bg-secondary me-2" style="font-size: 0.7rem;" sec:authorize="hasRole('USER')">USER</span>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none">Çıkış</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white"><h4 class="mb-0">Para Transferi</h4></div>
+                <div class="card-body">
+
+                    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+                    <form th:action="@{/transfer}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Gönderen Hesap (Sizin Hesaplarınız)</label>
+                            <select class="form-select" name="fromAccountId" required>
+                                <option value="" disabled selected>Hesap Seçin...</option>
+                                <option th:each="acc : ${myAccounts}"
+                                        th:value="${acc.id}"
+                                        th:text="${'Hesap No: ' + acc.id + ' - Bakiye: ' + acc.balance + ' TL (' + acc.branch + ')'}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alıcı Hesap No (Transfer Edilecek Hesap ID'si)</label>
+                            <input type="number" class="form-control" name="toAccountId" required placeholder="Örn: 5">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Miktar (TL)</label>
+                            <input type="number" step="0.01" class="form-control" name="amount" required placeholder="Örn: 150.50">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Transferi Gerçekleştir</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

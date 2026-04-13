@@ -12,25 +12,34 @@
 <body>
 
 <main class="login-form text-center card shadow">
-  <form th:action="@{/login}" method="post" class="card-body">
-    <h1 class="h3 mb-3 fw-normal">Lütfen Giriş Yapın</h1>
+  <div class="card-body">
+    <form th:action="@{/login}" method="post">
+      <h1 class="h3 mb-3 fw-normal">Lütfen Giriş Yapın</h1>
 
-    <div th:if="${param.error}" class="alert alert-danger">
-      Hatalı kullanıcı adı veya şifre!
-    </div>
+      <div th:if="${param.error}" class="alert alert-danger">
+        Hatalı kullanıcı adı veya şifre!
+      </div>
 
-    <div class="form-floating mb-2">
-      <input type="text" name="username" class="form-control" id="uName" placeholder="Müşteri ID" required>
-      <label for="uName">ID Numaranız</label>
-    </div>
-    <div class="form-floating mb-3">
-      <input type="password" name="password" class="form-control" id="uPass" placeholder="Şifre" required>
-      <label for="uPass">Şifre</label>
-    </div>
+      <div th:if="${param.logout}" class="alert alert-success">
+        Başarıyla çıkış yaptınız.
+      </div>
 
-    <button class="w-100 btn btn-lg btn-primary" type="submit">Giriş Yap</button>
-    <p class="mt-5 mb-3 text-muted">&copy; 2026 - Bank Management</p>
-  </form>
+      <div class="form-floating mb-2">
+        <input type="text" name="username" class="form-control" id="uName" placeholder="Müşteri NO" required>
+        <label for="uName">Müşteri Numaranız</label>
+      </div>
+      <div class="form-floating mb-3">
+        <input type="password" name="password" class="form-control" id="uPass" placeholder="Şifre" required>
+        <label for="uPass">Şifre</label>
+      </div>
+
+      <button class="w-100 btn btn-lg btn-primary mb-2" type="submit">Giriş Yap</button>
+    </form>
+
+    <a th:href="@{/}" class="w-100 btn btn-lg btn-secondary">Ana Sayfaya Dön</a>
+
+    <p class="mt-4 mb-1 text-muted">&copy; 2026 - Bank Management</p>
+  </div>
 </main>
 
 </body>

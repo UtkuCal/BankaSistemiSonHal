@@ -8,6 +8,7 @@ import com.example.bankmanagementdb.repository.AccountRepository;
 import com.example.bankmanagementdb.repository.DepositorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
-    private final DepositorRepository depositorRepository; // Yeni eklendi
+    private final DepositorRepository depositorRepository;
 
     public List<AccountDTO> getAll() {
         return accountRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
@@ -28,15 +29,12 @@ public class AccountService {
         return toDTO(a);
     }
 
-    // Yeni eklenen metot: Sadece müşteriye ait olan hesapları getirir
     public List<AccountDTO> getAccountsByCustomerId(int customerId) {
-        // Müşteriye ait hesap ID'lerini bul
         List<Integer> accountIds = depositorRepository.findByCustomerId(customerId)
                 .stream()
                 .map(Depositor::getAccountId)
                 .collect(Collectors.toList());
 
-        // Bu ID'lere ait hesapları getir ve DTO'ya çevir
         return accountRepository.findAllById(accountIds)
                 .stream()
                 .map(this::toDTO)
@@ -55,12 +53,38 @@ public class AccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Güncellenecek hesap bulunamadı ID: " + id));
 
         a.setBranch(dto.getBranch());
-        a.setBalance(dto.getBalance()); // Bakiyeyi günceller
+        a.setBalance(dto.getBalance());
         accountRepository.save(a);
     }
 
     public void delete(int id) {
         accountRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void transferMoney(int fromAccountId, int toAccountId, double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Transfer miktarı 0'dan büyük olmalıdır.");
+        }
+        if (fromAccountId == toAccountId) {
+            throw new IllegalArgumentException("Aynı hesaba transfer yapamazsınız.");
+        }
+
+        Account fromAccount = accountRepository.findById(fromAccountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Gönderici hesap bulunamadı (ID: " + fromAccountId + ")"));
+
+        Account toAccount = accountRepository.findById(toAccountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Alıcı hesap bulunamadı (ID: " + toAccountId + ")"));
+
+        if (fromAccount.getBalance() < amount) {
+            throw new IllegalArgumentException("Yetersiz bakiye. Mevcut bakiye: " + fromAccount.getBalance());
+        }
+
+        fromAccount.setBalance(fromAccount.getBalance() - amount);
+        toAccount.setBalance(toAccount.getBalance() + amount);
+
+        accountRepository.save(fromAccount);
+        accountRepository.save(toAccount);
     }
 
     private AccountDTO toDTO(Account a) {

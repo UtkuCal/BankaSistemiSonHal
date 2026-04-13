@@ -24,20 +24,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/", "/css/**", "/js/**", "/uploads/**").permitAll()
 
-                        // Sadece ADMIN'in erişebileceği yerler:
-                        // Mevduat işlemleri VE Müşteri işlemleri artık sadece ADMIN'e özel.
                         .requestMatchers("/customer/**", "/depositor/**").hasRole("ADMIN")
 
-                        // ADMIN ve USER'ın ortak erişebileceği yerler:
-                        // Sadece hesap işlemleri (AccountController içindeki filtreleme sayesinde USER sadece kendi hesabını görecek).
+                        .requestMatchers("/transfer/**").hasRole("USER")
+
                         .requestMatchers("/account/**").hasAnyRole("ADMIN", "USER")
 
                         .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")
-                        // Login başarılı olunca kullanıcıyı hesap listesine yönlendirmek daha mantıklı olur
-                        // çünkü artık müşterileri görme yetkisi yok.
                         .defaultSuccessUrl("/account/list", true)
                         .permitAll()
                 )

@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/depositor")
@@ -18,8 +19,13 @@ public class DepositorController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteDepositor(@PathVariable int id) {
-        depositorService.delete(id);
+    public String deleteDepositor(@PathVariable int id, RedirectAttributes redirectAttributes) {
+        try {
+            depositorService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Bağlantı başarıyla silindi.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/depositor/list";
     }
 
@@ -36,15 +42,19 @@ public class DepositorController {
     }
 
     @PostMapping("/link")
-    public String linkAccountAndCustomer(@ModelAttribute DepositorDTO dto, Authentication authentication) {
+    public String linkAccountAndCustomer(@ModelAttribute DepositorDTO dto, Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
             depositorService.link(dto.getCustomerId(), dto.getAccountId());
             System.out.println("LOG: Müşteri hesaba bağlandı. İşlemi yapan: " + authentication.getName());
+            redirectAttributes.addFlashAttribute("success", "Kayıt başarıyla oluşturuldu.");
         } catch (IllegalArgumentException ex) {
-            // Hata olursa işlemi logla (Project 3 istisnalar kuralı)
+            // Kural ihlali durumunda hatayı ekrana gönderir
             System.err.println("KURAL İHLALİ: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        } catch (Exception ex) {
+            // Beklenmedik durumlarda hatayı ekrana gönderir
+            redirectAttributes.addFlashAttribute("error", "Beklenmedik bir hata oluştu: " + ex.getMessage());
         }
-
         return "redirect:/depositor/list";
     }
 }
